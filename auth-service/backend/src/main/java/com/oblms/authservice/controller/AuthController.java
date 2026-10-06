@@ -25,14 +25,20 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public User register(@RequestBody User user) {
+    public RegisterResponse register(@RequestBody User user) {
 
         String encodedPassword =
                 passwordEncoder.encode(user.getPassword());
 
         user.setPassword(encodedPassword);
 
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+
+        return new RegisterResponse(
+                "User registered successfully",
+                savedUser.getEmail(),
+                savedUser.getRole()
+        );
     }
 
     @PostMapping("/login")

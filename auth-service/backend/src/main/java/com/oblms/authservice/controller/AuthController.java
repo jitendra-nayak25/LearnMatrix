@@ -42,20 +42,20 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody LoginRequest request) {
+    public LoginResponse login(@RequestBody LoginRequest request) {
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElse(null);
 
         if (user == null) {
-            return "Invalid email or password";
+            return null;
         }
 
         if (!passwordEncoder.matches(
                 request.getPassword(),
                 user.getPassword())) {
 
-            return "Invalid email or password";
+            return null;
         }
 
         String token = jwtService.generateToken(
@@ -63,6 +63,10 @@ public class AuthController {
                 user.getRole()
         );
 
-        return token;
+        return new LoginResponse(
+                token,
+                user.getEmail(),
+                user.getRole()
+        );
     }
 }

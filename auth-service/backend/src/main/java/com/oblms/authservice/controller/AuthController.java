@@ -1,5 +1,6 @@
 package com.oblms.authservice.controller;
 
+import com.oblms.authservice.config.JwtService;
 import com.oblms.authservice.entity.User;
 import com.oblms.authservice.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -11,13 +12,16 @@ public class AuthController {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     public AuthController(
             UserRepository userRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            JwtService jwtService) {
 
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     @PostMapping("/register")
@@ -48,6 +52,11 @@ public class AuthController {
             return "Invalid email or password";
         }
 
-        return "Login successful";
+        String token = jwtService.generateToken(
+                user.getEmail(),
+                user.getRole()
+        );
+
+        return token;
     }
 }

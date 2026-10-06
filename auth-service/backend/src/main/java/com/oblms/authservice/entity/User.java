@@ -1,6 +1,5 @@
 package com.oblms.authservice.entity;
 
-
 import jakarta.persistence.*;
 
 @Entity

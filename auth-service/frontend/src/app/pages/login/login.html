@@ -1,0 +1,40 @@
+<div class="container">
+
+    <div class="card">
+
+        <h1>LearnMatrix</h1>
+
+        <h2>Login</h2>
+
+        <form (ngSubmit)="login()">
+
+            <label>Email</label>
+
+            <input type="email" name="email" [(ngModel)]="email" placeholder="Enter email" required />
+
+            <label>Password</label>
+
+            <input type="password" name="password" [(ngModel)]="password" placeholder="Enter password" required />
+
+            <button type="submit">
+                Login
+            </button>
+
+        </form>
+
+        @if (errorMessage) {
+        <p class="error">
+            {{ errorMessage }}
+        </p>
+        }
+
+        <p>
+            Don't have an account?
+            <a routerLink="/register">
+                Register
+            </a>
+        </p>
+
+    </div>
+
+</div>

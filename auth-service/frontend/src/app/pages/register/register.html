@@ -1,0 +1,68 @@
+<div class="container">
+
+    <div class="card">
+
+        <h1>LearnMatrix</h1>
+
+        <h2>Create Account</h2>
+
+        <form (ngSubmit)="register()">
+
+            <label>Name</label>
+
+            <input type="text" name="name" [(ngModel)]="name" placeholder="Enter name" required />
+
+            <label>Email</label>
+
+            <input type="email" name="email" [(ngModel)]="email" placeholder="Enter email" required />
+
+            <label>Password</label>
+
+            <input type="password" name="password" [(ngModel)]="password" placeholder="Enter password" required />
+
+            <label>Role</label>
+
+            <select name="role" [(ngModel)]="role">
+
+                <option value="STUDENT">
+                    Student
+                </option>
+
+                <option value="FACULTY">
+                    Faculty
+                </option>
+
+                <option value="ADMIN">
+                    Admin
+                </option>
+
+            </select>
+
+            <button type="submit">
+                Register
+            </button>
+
+        </form>
+
+        @if (message) {
+        <p class="success">
+            {{ message }}
+        </p>
+        }
+
+        @if (errorMessage) {
+        <p class="error">
+            {{ errorMessage }}
+        </p>
+        }
+
+        <p>
+            Already have an account?
+            <a routerLink="/login">
+                Login
+            </a>
+        </p>
+
+    </div>
+
+</div>

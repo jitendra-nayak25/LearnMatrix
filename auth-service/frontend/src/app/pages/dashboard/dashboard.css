@@ -1,0 +1,38 @@
+.dashboard {
+    min-height: 100vh;
+    background: #f4f6f8;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 40px;
+    background: #1976d2;
+    color: white;
+}
+
+header h1 {
+    margin: 0;
+}
+
+header button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+main {
+    padding: 40px;
+}
+
+.card,
+.role-card {
+    max-width: 700px;
+    margin: 0 auto 20px;
+    padding: 25px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}

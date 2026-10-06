@@ -33,10 +33,26 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
 
                 .authorizeHttpRequests(auth -> auth
+
+                        // Public endpoints
                         .requestMatchers(
                                 "/auth/register",
                                 "/auth/login"
                         ).permitAll()
+
+                        // ADMIN only
+                        .requestMatchers("/test/admin")
+                        .hasRole("ADMIN")
+
+                        // FACULTY only
+                        .requestMatchers("/test/faculty")
+                        .hasRole("FACULTY")
+
+                        // STUDENT only
+                        .requestMatchers("/test/student")
+                        .hasRole("STUDENT")
+
+                        // Everything else requires login
                         .anyRequest().authenticated()
                 )
 

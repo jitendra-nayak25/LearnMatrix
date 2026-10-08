@@ -51,21 +51,15 @@ public class SecurityConfig {
 
                         // Public endpoints
                         .requestMatchers(
+                                "/auth/otp/send",
                                 "/auth/register",
-                                "/auth/login"
+                                "/auth/login",
+                                "/auth/login-otp"
                         ).permitAll()
 
-                        // ADMIN only
-                        .requestMatchers("/test/admin")
+                        // ADMIN only: manage users
+                        .requestMatchers("/auth/users/**")
                         .hasRole("ADMIN")
-
-                        // FACULTY only
-                        .requestMatchers("/test/faculty")
-                        .hasRole("FACULTY")
-
-                        // STUDENT only
-                        .requestMatchers("/test/student")
-                        .hasRole("STUDENT")
 
                         // Everything else requires login
                         .anyRequest().authenticated()

@@ -55,6 +55,24 @@ button {
     text-align: center;
 }
 
+.roles {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.roles button {
+    margin-top: 0;
+    background: #e0e0e0;
+    color: #333;
+    font-size: 14px;
+}
+
+.roles button.active {
+    background: #1976d2;
+    color: white;
+}
+
 p {
     text-align: center;
     margin-top: 20px;

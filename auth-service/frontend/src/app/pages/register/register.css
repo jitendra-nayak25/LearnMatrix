@@ -46,6 +46,21 @@ button {
     font-size: 16px;
 }
 
+.roles {
+    display: flex;
+    gap: 10px;
+}
+
+.roles button {
+    background: #e0e0e0;
+    color: #333;
+}
+
+.roles button.active {
+    background: #1976d2;
+    color: white;
+}
+
 .success {
     color: green;
     text-align: center;

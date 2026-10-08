@@ -5,8 +5,8 @@
 
         <!-- Choose login method -->
         <div class="roles">
-            <button type="button" [class.active]="mode === 'password'" (click)="mode = 'password'">Password</button>
-            <button type="button" [class.active]="mode === 'otp'" (click)="mode = 'otp'">OTP</button>
+            <button type="button" [class.active]="mode === 'password'" (click)="setMode('password')">Password</button>
+            <button type="button" [class.active]="mode === 'otp'" (click)="setMode('otp')">OTP</button>
         </div>
 
         <label>Email</label>
@@ -15,16 +15,16 @@
         @if (mode === 'password') {
         <label>Password</label>
         <input type="password" [(ngModel)]="password" placeholder="Enter password" />
-        <button (click)="login()">Login</button>
+        <button (click)="login()" [disabled]="busy">{{ busy ? 'Please wait...' : 'Login' }}</button>
         }
 
         @if (mode === 'otp') {
         @if (!otpSent) {
-        <button (click)="sendOtp()">Send OTP</button>
+        <button (click)="sendOtp()" [disabled]="busy">{{ busy ? 'Sending...' : 'Send OTP' }}</button>
         } @else {
         <label>OTP (sent to email)</label>
         <input [(ngModel)]="otp" placeholder="Enter OTP" />
-        <button (click)="login()">Verify & Login</button>
+        <button (click)="login()" [disabled]="busy">{{ busy ? 'Please wait...' : 'Verify & Login' }}</button>
         }
         }
 

@@ -18,46 +18,73 @@ export class LoginComponent {
   password = '';
   otp = '';
   otpSent = false;
+  busy = false;
 
   errorMessage = '';
 
   constructor(private auth: AuthService, private router: Router) { }
 
+  setMode(m: 'password' | 'otp'): void {
+    this.mode = m;
+    this.errorMessage = '';
+    this.otpSent = false;
+    this.otp = '';
+  }
+
   sendOtp(): void {
     this.errorMessage = '';
-    this.auth.sendOtp(this.email).subscribe({
-      next: () => this.otpSent = true,
-      error: () => this.errorMessage = 'Could not send OTP.'
+    if (!this.email.trim()) {
+      this.errorMessage = 'Enter email first.';
+      return;
+    }
+    this.busy = true;
+    this.auth.sendOtp(this.email.trim()).subscribe({
+      next: () => { this.otpSent = true; this.busy = false; },
+      error: () => { this.errorMessage = 'Could not send OTP.'; this.busy = false; }
     });
   }
 
   login(): void {
     this.errorMessage = '';
-    const done = () => this.router.navigate(['/dashboard']);
+    if (!this.email.trim()) {
+      this.errorMessage = 'Enter email first.';
+      return;
+    }
+    if (this.mode === 'password' && !this.password) {
+      this.errorMessage = 'Enter password.';
+      return;
+    }
+    if (this.mode === 'otp' && !this.otp) {
+      this.errorMessage = 'Enter OTP.';
+      return;
+    }
+    this.busy = true;
+    const done = () => { this.busy = false; this.router.navigate(['/dashboard']); };
+    const fail = (msg: string) => { this.busy = false; this.errorMessage = msg; };
 
     if (this.mode === 'password') {
-      this.auth.login(this.email, this.password).subscribe({
+      this.auth.login(this.email.trim(), this.password).subscribe({
         next: (r) => {
           if (r.role === 'ADMIN') {
             this.auth.logout();
-            this.errorMessage = 'Admins must use the Admin Login page.';
+            fail('Admins must use the Admin Login page.');
             return;
           }
           done();
         },
-        error: () => this.errorMessage = 'Invalid email or password'
+        error: () => fail('Invalid email or password')
       });
     } else {
-      this.auth.loginWithOtp(this.email, this.otp).subscribe({
+      this.auth.loginWithOtp(this.email.trim(), this.otp).subscribe({
         next: (r) => {
           if (r.role === 'ADMIN') {
             this.auth.logout();
-            this.errorMessage = 'Admins must use the Admin Login page.';
+            fail('Admins must use the Admin Login page.');
             return;
           }
           done();
         },
-        error: () => this.errorMessage = 'Invalid or expired OTP'
+        error: () => fail('Invalid or expired OTP')
       });
     }
   }

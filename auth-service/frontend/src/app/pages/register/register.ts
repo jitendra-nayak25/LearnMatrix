@@ -12,12 +12,14 @@ import { AuthService } from '../../services/auth';
 })
 export class RegisterComponent {
 
-  name = '';
   email = '';
-  password = '';
-  role: 'STUDENT' | 'FACULTY' = 'STUDENT';
   otp = '';
   otpSent = false;
+  emailVerified = false;
+
+  name = '';
+  password = '';
+  role: 'STUDENT' | 'FACULTY' = 'STUDENT';
 
   message = '';
   errorMessage = '';
@@ -35,6 +37,17 @@ export class RegisterComponent {
     });
   }
 
+  verifyOtp(): void {
+    this.errorMessage = '';
+    this.auth.verifyOtp(this.email, this.otp).subscribe({
+      next: () => {
+        this.emailVerified = true;
+        this.message = 'Email verified. Now complete your details.';
+      },
+      error: () => this.errorMessage = 'Invalid or expired OTP.'
+    });
+  }
+
   register(): void {
     this.errorMessage = '';
     this.auth.register({
@@ -45,7 +58,7 @@ export class RegisterComponent {
       otp: this.otp
     }).subscribe({
       next: () => this.router.navigate(['/login']),
-      error: (e) => this.errorMessage = e.error || 'Registration failed. Check OTP.'
+      error: (e) => this.errorMessage = e.error || 'Registration failed.'
     });
   }
 }

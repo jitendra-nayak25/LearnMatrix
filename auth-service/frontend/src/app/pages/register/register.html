@@ -3,30 +3,35 @@
         <h1>LearnMatrix</h1>
         <h2>Register</h2>
 
-        <!-- Step 1: choose role (Student / Faculty only) -->
-        <div class="roles">
-            <button type="button" [class.active]="role === 'STUDENT'" (click)="role = 'STUDENT'">Student</button>
-            <button type="button" [class.active]="role === 'FACULTY'" (click)="role = 'FACULTY'">Faculty</button>
-        </div>
-
-        <label>Name</label>
-        <input [(ngModel)]="name" placeholder="Enter name" />
-
+        <!-- Step 1: email + OTP -->
         <label>Email</label>
-        <input [(ngModel)]="email" placeholder="Enter email" />
+        <input [(ngModel)]="email" placeholder="Enter email" [disabled]="emailVerified" />
 
         @if (!otpSent) {
         <button (click)="sendOtp()">Send OTP</button>
         }
 
-        @if (otpSent) {
+        @if (otpSent && !emailVerified) {
         <label>OTP (sent to email)</label>
         <input [(ngModel)]="otp" placeholder="Enter OTP" />
+        <button (click)="verifyOtp()">Verify Email</button>
+        }
 
-        <label>Password (you will use this to login)</label>
+        <!-- Step 2: after mail verification, enter name, password, role -->
+        @if (emailVerified) {
+        <label>Name</label>
+        <input [(ngModel)]="name" placeholder="Enter name" />
+
+        <label>Password</label>
         <input type="password" [(ngModel)]="password" placeholder="Create password" />
 
-        <button (click)="register()">Verify OTP & Register</button>
+        <label>Role</label>
+        <div class="roles">
+            <button type="button" [class.active]="role === 'STUDENT'" (click)="role = 'STUDENT'">Student</button>
+            <button type="button" [class.active]="role === 'FACULTY'" (click)="role = 'FACULTY'">Faculty</button>
+        </div>
+
+        <button (click)="register()">Register</button>
         }
 
         @if (message) { <p class="success">{{ message }}</p> }

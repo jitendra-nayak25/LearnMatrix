@@ -43,6 +43,11 @@ export class AuthService {
         return this.http.post(`${this.apiUrl}/otp/send`, { email }, { responseType: 'text' });
     }
 
+    // Verify email OTP (registration step 2).
+    verifyOtp(email: string, otp: string): Observable<string> {
+        return this.http.post(`${this.apiUrl}/otp/verify`, { email, otp }, { responseType: 'text' });
+    }
+
     register(data: RegisterRequest): Observable<any> {
         return this.http.post(`${this.apiUrl}/register`, data);
     }

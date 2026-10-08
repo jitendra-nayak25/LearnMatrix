@@ -12,7 +12,6 @@ import { AuthService } from '../../services/auth';
 })
 export class LoginComponent {
 
-  role: 'STUDENT' | 'FACULTY' | 'ADMIN' = 'STUDENT';
   mode: 'password' | 'otp' = 'password';
 
   email = '';
@@ -38,24 +37,14 @@ export class LoginComponent {
 
     if (this.mode === 'password') {
       this.auth.login(this.email, this.password).subscribe({
-        next: (r) => this.checkRole(r.role, done),
+        next: () => done(),
         error: () => this.errorMessage = 'Invalid email or password'
       });
     } else {
       this.auth.loginWithOtp(this.email, this.otp).subscribe({
-        next: (r) => this.checkRole(r.role, done),
+        next: () => done(),
         error: () => this.errorMessage = 'Invalid or expired OTP'
       });
     }
-  }
-
-  // Make sure user logs in under the chosen role tab.
-  private checkRole(actualRole: string, done: () => void): void {
-    if (actualRole !== this.role) {
-      this.auth.logout();
-      this.errorMessage = `This account is ${actualRole}, not ${this.role}.`;
-      return;
-    }
-    done();
   }
 }

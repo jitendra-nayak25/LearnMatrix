@@ -3,13 +3,6 @@
         <h1>LearnMatrix</h1>
         <h2>Login</h2>
 
-        <!-- Choose role -->
-        <div class="roles">
-            <button type="button" [class.active]="role === 'STUDENT'" (click)="role = 'STUDENT'">Student</button>
-            <button type="button" [class.active]="role === 'FACULTY'" (click)="role = 'FACULTY'">Faculty</button>
-            <button type="button" [class.active]="role === 'ADMIN'" (click)="role = 'ADMIN'">Admin</button>
-        </div>
-
         <!-- Choose login method -->
         <div class="roles">
             <button type="button" [class.active]="mode === 'password'" (click)="mode = 'password'">Password</button>
@@ -22,7 +15,7 @@
         @if (mode === 'password') {
         <label>Password</label>
         <input type="password" [(ngModel)]="password" placeholder="Enter password" />
-        <button (click)="login()">Login as {{ role }}</button>
+        <button (click)="login()">Login</button>
         }
 
         @if (mode === 'otp') {
@@ -31,14 +24,12 @@
         } @else {
         <label>OTP (sent to email)</label>
         <input [(ngModel)]="otp" placeholder="Enter OTP" />
-        <button (click)="login()">Login as {{ role }}</button>
+        <button (click)="login()">Verify & Login</button>
         }
         }
 
         @if (errorMessage) { <p class="error">{{ errorMessage }}</p> }
 
-        @if (role !== 'ADMIN') {
         <p>Don't have an account? <a routerLink="/register">Register</a></p>
-        }
     </div>
 </div>

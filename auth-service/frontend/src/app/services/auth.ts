@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, timeout } from 'rxjs';
 
 export interface RegisterRequest {
     name: string;
@@ -40,26 +40,29 @@ export class AuthService {
 
     // Send OTP to email (used for register + OTP login).
     sendOtp(email: string): Observable<string> {
-        return this.http.post(`${this.apiUrl}/otp/send`, { email }, { responseType: 'text' });
+        return this.http.post(`${this.apiUrl}/otp/send`, { email }, { responseType: 'text' })
+            .pipe(timeout(30000));
     }
 
     // Verify email OTP (registration step 2).
     verifyOtp(email: string, otp: string): Observable<string> {
-        return this.http.post(`${this.apiUrl}/otp/verify`, { email, otp }, { responseType: 'text' });
+        return this.http.post(`${this.apiUrl}/otp/verify`, { email, otp }, { responseType: 'text' })
+            .pipe(timeout(30000));
     }
 
     register(data: RegisterRequest): Observable<any> {
-        return this.http.post(`${this.apiUrl}/register`, data);
+        return this.http.post(`${this.apiUrl}/register`, data)
+            .pipe(timeout(30000));
     }
 
     login(email: string, password: string): Observable<LoginResponse> {
         return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { email, password })
-            .pipe(tap(r => this.save(r)));
+            .pipe(timeout(30000), tap(r => this.save(r)));
     }
 
     loginWithOtp(email: string, otp: string): Observable<LoginResponse> {
         return this.http.post<LoginResponse>(`${this.apiUrl}/login-otp`, { email, otp })
-            .pipe(tap(r => this.save(r)));
+            .pipe(timeout(30000), tap(r => this.save(r)));
     }
 
     private save(r: LoginResponse): void {

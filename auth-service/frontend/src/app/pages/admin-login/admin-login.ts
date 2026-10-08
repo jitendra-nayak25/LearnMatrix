@@ -29,9 +29,11 @@ export class AdminLoginComponent {
         }
         this.router.navigate(['/dashboard']);
       },
-      error: (e) => this.errorMessage = e.status === 404
-        ? 'Invalid input. No account found for this email.'
-        : 'Wrong password.'
+      error: (e) => this.errorMessage = e.status === 0
+        ? 'Cannot reach server. Start the backend first.'
+        : e.status === 404
+          ? 'Invalid input. No account found for this email.'
+          : 'Wrong password.'
     });
   }
 }

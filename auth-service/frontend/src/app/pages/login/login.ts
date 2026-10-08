@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { finalize } from 'rxjs';
 import { AuthService } from '../../services/auth';
 
 @Component({
@@ -38,10 +39,14 @@ export class LoginComponent {
       return;
     }
     this.busy = true;
-    this.auth.sendOtp(this.email.trim()).subscribe({
-      next: () => { this.otpSent = true; this.busy = false; },
-      error: () => { this.errorMessage = 'Could not send OTP.'; this.busy = false; }
-    });
+    this.auth.sendOtp(this.email.trim())
+      .pipe(finalize(() => this.busy = false))
+      .subscribe({
+        next: () => this.otpSent = true,
+        error: (e) => this.errorMessage = e.status === 0
+          ? 'Cannot reach server. Start the backend first.'
+          : 'Could not send OTP.'
+      });
   }
 
   login(): void {
@@ -59,37 +64,48 @@ export class LoginComponent {
       return;
     }
     this.busy = true;
-    const done = () => { this.busy = false; this.router.navigate(['/dashboard']); };
-    const fail = (msg: string) => { this.busy = false; this.errorMessage = msg; };
+
+    const done = () => this.router.navigate(['/dashboard']);
+    const fail = (msg: string) => this.errorMessage = msg;
+    const badPassword = (e: any) => fail(e.status === 0
+      ? 'Cannot reach server. Start the backend first.'
+      : e.status === 404
+        ? 'Invalid input. No account found for this email.'
+        : 'Wrong password.');
+    const badOtp = (e: any) => fail(e.status === 0
+      ? 'Cannot reach server. Start the backend first.'
+      : e.status === 404
+        ? 'Invalid input. No account found for this email.'
+        : 'Invalid or expired OTP');
 
     if (this.mode === 'password') {
-      this.auth.login(this.email.trim(), this.password).subscribe({
-        next: (r) => {
-          if (r.role === 'ADMIN') {
-            this.auth.logout();
-            fail('Admins must use the Admin Login page.');
-            return;
-          }
-          done();
-        },
-        error: (e) => fail(e.status === 404
-          ? 'Invalid input. No account found for this email.'
-          : 'Wrong password.')
-      });
+      this.auth.login(this.email.trim(), this.password)
+        .pipe(finalize(() => this.busy = false))
+        .subscribe({
+          next: (r) => {
+            if (r?.role === 'ADMIN') {
+              this.auth.logout();
+              fail('Admins must use the Admin Login page.');
+              return;
+            }
+            done();
+          },
+          error: badPassword
+        });
     } else {
-      this.auth.loginWithOtp(this.email.trim(), this.otp).subscribe({
-        next: (r) => {
-          if (r.role === 'ADMIN') {
-            this.auth.logout();
-            fail('Admins must use the Admin Login page.');
-            return;
-          }
-          done();
-        },
-        error: (e) => fail(e.status === 404
-          ? 'Invalid input. No account found for this email.'
-          : 'Invalid or expired OTP')
-      });
+      this.auth.loginWithOtp(this.email.trim(), this.otp)
+        .pipe(finalize(() => this.busy = false))
+        .subscribe({
+          next: (r) => {
+            if (r?.role === 'ADMIN') {
+              this.auth.logout();
+              fail('Admins must use the Admin Login page.');
+              return;
+            }
+            done();
+          },
+          error: badOtp
+        });
     }
   }
 }

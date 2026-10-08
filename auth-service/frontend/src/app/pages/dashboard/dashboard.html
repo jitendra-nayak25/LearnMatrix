@@ -1,75 +1,52 @@
 <div class="dashboard">
-
     <header>
-
         <h1>LearnMatrix</h1>
-
-        <button (click)="logout()">
-            Logout
-        </button>
-
+        <button (click)="logout()">Logout</button>
     </header>
 
     <main>
-
         <div class="card">
-
             <h2>Welcome!</h2>
-
-            <p>
-                <strong>Email:</strong>
-                {{ email }}
-            </p>
-
-            <p>
-                <strong>Role:</strong>
-                {{ role }}
-            </p>
-
+            <p><strong>Email:</strong> {{ email }}</p>
+            <p><strong>Role:</strong> {{ role }}</p>
         </div>
 
         @if (role === 'STUDENT') {
-
         <div class="role-card">
-
             <h2>Student Dashboard</h2>
-
-            <p>
-                View your courses, assessments and attainment.
-            </p>
-
+            <p>View your courses, assessments and attainment.</p>
         </div>
-
         }
 
         @if (role === 'FACULTY') {
-
         <div class="role-card">
-
             <h2>Faculty Dashboard</h2>
-
-            <p>
-                Manage courses, assessments and student outcomes.
-            </p>
-
+            <p>Manage courses, assessments and student outcomes.</p>
         </div>
-
         }
 
         @if (role === 'ADMIN') {
-
         <div class="role-card">
+            <h2>Manage Students & Faculty</h2>
 
-            <h2>Admin Dashboard</h2>
+            <select [(ngModel)]="filter" (change)="shownUsers()">
+                <option value="ALL">All</option>
+                <option value="STUDENT">Students</option>
+                <option value="FACULTY">Faculty</option>
+            </select>
 
-            <p>
-                Manage users and the OBLMS platform.
-            </p>
-
+            <table>
+                <tr><th>Name</th><th>Email</th><th>Role</th><th></th></tr>
+                @for (u of shownUsers(); track u.id) {
+                <tr>
+                    <td>{{ u.name }}</td>
+                    <td>{{ u.email }}</td>
+                    <td>{{ u.role }}</td>
+                    <td><button (click)="remove(u.id)">Delete</button></td>
+                </tr>
+                }
+            </table>
         </div>
-
         }
-
     </main>
-
 </div>

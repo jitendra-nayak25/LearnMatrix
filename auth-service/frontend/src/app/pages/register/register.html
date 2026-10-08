@@ -1,68 +1,37 @@
 <div class="container">
-
     <div class="card">
-
         <h1>LearnMatrix</h1>
+        <h2>Register</h2>
 
-        <h2>Create Account</h2>
+        <!-- Step 1: choose role (Student / Faculty only) -->
+        <div class="roles">
+            <button type="button" [class.active]="role === 'STUDENT'" (click)="role = 'STUDENT'">Student</button>
+            <button type="button" [class.active]="role === 'FACULTY'" (click)="role = 'FACULTY'">Faculty</button>
+        </div>
 
-        <form (ngSubmit)="register()">
+        <label>Name</label>
+        <input [(ngModel)]="name" placeholder="Enter name" />
 
-            <label>Name</label>
+        <label>Email</label>
+        <input [(ngModel)]="email" placeholder="Enter email" />
 
-            <input type="text" name="name" [(ngModel)]="name" placeholder="Enter name" required />
-
-            <label>Email</label>
-
-            <input type="email" name="email" [(ngModel)]="email" placeholder="Enter email" required />
-
-            <label>Password</label>
-
-            <input type="password" name="password" [(ngModel)]="password" placeholder="Enter password" required />
-
-            <label>Role</label>
-
-            <select name="role" [(ngModel)]="role">
-
-                <option value="STUDENT">
-                    Student
-                </option>
-
-                <option value="FACULTY">
-                    Faculty
-                </option>
-
-                <option value="ADMIN">
-                    Admin
-                </option>
-
-            </select>
-
-            <button type="submit">
-                Register
-            </button>
-
-        </form>
-
-        @if (message) {
-        <p class="success">
-            {{ message }}
-        </p>
+        @if (!otpSent) {
+        <button (click)="sendOtp()">Send OTP</button>
         }
 
-        @if (errorMessage) {
-        <p class="error">
-            {{ errorMessage }}
-        </p>
+        @if (otpSent) {
+        <label>OTP (sent to email)</label>
+        <input [(ngModel)]="otp" placeholder="Enter OTP" />
+
+        <label>Password (you will use this to login)</label>
+        <input type="password" [(ngModel)]="password" placeholder="Create password" />
+
+        <button (click)="register()">Verify OTP & Register</button>
         }
 
-        <p>
-            Already have an account?
-            <a routerLink="/login">
-                Login
-            </a>
-        </p>
+        @if (message) { <p class="success">{{ message }}</p> }
+        @if (errorMessage) { <p class="error">{{ errorMessage }}</p> }
 
+        <p>Already have an account? <a routerLink="/login">Login</a></p>
     </div>
-
 </div>

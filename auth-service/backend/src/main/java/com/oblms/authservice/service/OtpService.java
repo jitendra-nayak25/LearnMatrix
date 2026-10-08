@@ -45,6 +45,15 @@ public class OtpService {
     }
 
     public boolean verifyOtp(String email, String otp) {
+        boolean ok = checkOtp(email, otp);
+        if (ok) {
+            clearOtp(email);
+        }
+        return ok;
+    }
+
+    // Check without consuming (for 2-step registration: verify first, save later).
+    public boolean checkOtp(String email, String otp) {
         String saved = otpStore.get(email);
         Long expiry = expiryStore.get(email);
         if (saved == null || expiry == null) {
@@ -55,11 +64,11 @@ public class OtpService {
             expiryStore.remove(email);
             return false;
         }
-        boolean ok = saved.equals(otp);
-        if (ok) {
-            otpStore.remove(email);
-            expiryStore.remove(email);
-        }
-        return ok;
+        return saved.equals(otp);
+    }
+
+    public void clearOtp(String email) {
+        otpStore.remove(email);
+        expiryStore.remove(email);
     }
 }

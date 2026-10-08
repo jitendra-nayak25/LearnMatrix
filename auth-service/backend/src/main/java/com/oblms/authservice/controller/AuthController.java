@@ -38,7 +38,16 @@ public class AuthController {
         return "OTP sent to email";
     }
 
-    // Step 2 of registration: verify OTP + create Student/Faculty only.
+    // Step 2 of registration: verify email OTP before showing name/password/role form.
+    @PostMapping("/otp/verify")
+    public String verifyOtp(@RequestBody OtpLoginRequest request) {
+        if (!otpService.checkOtp(request.getEmail(), request.getOtp())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid or expired OTP");
+        }
+        return "OTP verified";
+    }
+
+    // Step 3 of registration: create Student/Faculty only (email already verified).
     @PostMapping("/register")
     public RegisterResponse register(@RequestBody RegisterRequest request) {
         String role = request.getRole() == null ? "" : request.getRole().toUpperCase();
@@ -50,7 +59,7 @@ public class AuthController {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email already registered");
         }
-        if (!otpService.verifyOtp(request.getEmail(), request.getOtp())) {
+        if (!otpService.checkOtp(request.getEmail(), request.getOtp())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid or expired OTP");
         }
 
@@ -60,6 +69,7 @@ public class AuthController {
                 passwordEncoder.encode(request.getPassword()),
                 role);
         User saved = userRepository.save(user);
+        otpService.clearOtp(request.getEmail());
         return new RegisterResponse("User registered successfully", saved.getEmail(), saved.getRole());
     }
 

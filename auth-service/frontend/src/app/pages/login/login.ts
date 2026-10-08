@@ -37,12 +37,26 @@ export class LoginComponent {
 
     if (this.mode === 'password') {
       this.auth.login(this.email, this.password).subscribe({
-        next: () => done(),
+        next: (r) => {
+          if (r.role === 'ADMIN') {
+            this.auth.logout();
+            this.errorMessage = 'Admins must use the Admin Login page.';
+            return;
+          }
+          done();
+        },
         error: () => this.errorMessage = 'Invalid email or password'
       });
     } else {
       this.auth.loginWithOtp(this.email, this.otp).subscribe({
-        next: () => done(),
+        next: (r) => {
+          if (r.role === 'ADMIN') {
+            this.auth.logout();
+            this.errorMessage = 'Admins must use the Admin Login page.';
+            return;
+          }
+          done();
+        },
         error: () => this.errorMessage = 'Invalid or expired OTP'
       });
     }

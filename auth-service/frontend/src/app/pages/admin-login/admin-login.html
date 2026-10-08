@@ -1,0 +1,18 @@
+<div class="container">
+    <div class="card">
+        <h1>LearnMatrix</h1>
+        <h2>Admin Login</h2>
+
+        <label>Email</label>
+        <input [(ngModel)]="email" placeholder="Enter admin email" />
+
+        <label>Password</label>
+        <input type="password" [(ngModel)]="password" placeholder="Enter password" />
+
+        <button (click)="login()">Login as Admin</button>
+
+        @if (errorMessage) { <p class="error">{{ errorMessage }}</p> }
+
+        <p><a routerLink="/">Back to Home</a></p>
+    </div>
+</div>

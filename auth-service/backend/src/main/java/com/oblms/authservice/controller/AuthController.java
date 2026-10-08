@@ -77,9 +77,9 @@ public class AuthController {
     @PostMapping("/login")
     public LoginResponse login(@RequestBody LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Email not registered"));
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Wrong password");
         }
         String token = jwtService.generateToken(user.getEmail(), user.getRole());
         return new LoginResponse(token, user.getEmail(), user.getRole());
@@ -89,7 +89,7 @@ public class AuthController {
     @PostMapping("/login-otp")
     public LoginResponse loginWithOtp(@RequestBody OtpLoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Email not registered"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Email not registered"));
         if (!otpService.verifyOtp(request.getEmail(), request.getOtp())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or expired OTP");
         }

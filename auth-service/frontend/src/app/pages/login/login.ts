@@ -72,7 +72,9 @@ export class LoginComponent {
           }
           done();
         },
-        error: () => fail('Invalid email or password')
+        error: (e) => fail(e.status === 404
+          ? 'Invalid input. No account found for this email.'
+          : 'Wrong password.')
       });
     } else {
       this.auth.loginWithOtp(this.email.trim(), this.otp).subscribe({
@@ -84,7 +86,9 @@ export class LoginComponent {
           }
           done();
         },
-        error: () => fail('Invalid or expired OTP')
+        error: (e) => fail(e.status === 404
+          ? 'Invalid input. No account found for this email.'
+          : 'Invalid or expired OTP')
       });
     }
   }

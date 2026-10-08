@@ -29,7 +29,9 @@ export class AdminLoginComponent {
         }
         this.router.navigate(['/dashboard']);
       },
-      error: () => this.errorMessage = 'Invalid email or password'
+      error: (e) => this.errorMessage = e.status === 404
+        ? 'Invalid input. No account found for this email.'
+        : 'Wrong password.'
     });
   }
 }

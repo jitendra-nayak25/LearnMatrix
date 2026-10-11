@@ -16,6 +16,7 @@ export class DashboardComponent implements OnInit {
   role: string | null;
   users: AppUser[] = [];
   filter = 'ALL';
+  counts = { ALL: 0, STUDENT: 0, FACULTY: 0 };
 
   constructor(private auth: AuthService, private router: Router) {
     this.email = this.auth.getEmail();
@@ -30,8 +31,18 @@ export class DashboardComponent implements OnInit {
 
   loadUsers(): void {
     this.auth.getUsers().subscribe({
-      next: (u) => this.users = u,
-      error: () => this.users = []
+      next: (u) => {
+        this.users = u;
+        this.counts = {
+          ALL: u.filter(x => x.role !== 'ADMIN').length,
+          STUDENT: u.filter(x => x.role === 'STUDENT').length,
+          FACULTY: u.filter(x => x.role === 'FACULTY').length
+        };
+      },
+      error: () => {
+        this.users = [];
+        this.counts = { ALL: 0, STUDENT: 0, FACULTY: 0 };
+      }
     });
   }
 

@@ -54,3 +54,12 @@ select {
     padding: 8px;
     margin-top: 10px;
 }
+
+.link {
+    background: none;
+    border: none;
+    color: #1976d2;
+    cursor: pointer;
+    margin-top: 10px;
+    padding: 6px;
+}

@@ -29,11 +29,13 @@
         <div class="role-card">
             <h2>Manage Students & Faculty</h2>
 
-            <select [(ngModel)]="filter" (change)="shownUsers()">
-                <option value="ALL">All</option>
-                <option value="STUDENT">Students</option>
-                <option value="FACULTY">Faculty</option>
+            <select [(ngModel)]="filter">
+                <option value="ALL">All ({{ counts.ALL }})</option>
+                <option value="STUDENT">Students ({{ counts.STUDENT }})</option>
+                <option value="FACULTY">Faculty ({{ counts.FACULTY }})</option>
             </select>
+
+            <button class="link" (click)="loadUsers()">Refresh</button>
 
             <table>
                 <tr><th>Name</th><th>Email</th><th>Role</th><th></th></tr>
@@ -44,6 +46,9 @@
                     <td>{{ u.role }}</td>
                     <td><button (click)="remove(u.id)">Delete</button></td>
                 </tr>
+                }
+                @if (shownUsers().length === 0) {
+                <tr><td colspan="4">No users found.</td></tr>
                 }
             </table>
         </div>

@@ -1,8 +1,7 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { finalize } from 'rxjs';
-import { AuthService } from '../../services/auth';
+import { AuthService, serverMessage } from '../../services/auth';
 
 @Component({
   selector: 'app-login',
@@ -14,122 +13,97 @@ import { AuthService } from '../../services/auth';
 export class LoginComponent {
 
   mode: 'password' | 'otp' = 'password';
+  otpSent = false;
 
   email = '';
   password = '';
   otp = '';
-  otpSent = false;
-  busy = false;
-  resendIn = 0;
-  private resendTimer: any;
 
-  errorMessage = '';
+  info = '';
+  error = '';
 
   constructor(private auth: AuthService, private router: Router) { }
 
   setMode(m: 'password' | 'otp'): void {
     this.mode = m;
-    this.errorMessage = '';
+    this.info = '';
+    this.error = '';
     this.otpSent = false;
     this.otp = '';
   }
 
-  private startCooldown(): void {
-    this.resendIn = 60;
-    clearInterval(this.resendTimer);
-    this.resendTimer = setInterval(() => {
-      this.resendIn--;
-      if (this.resendIn <= 0) {
-        clearInterval(this.resendTimer);
-      }
-    }, 1000);
-  }
-
   sendOtp(): void {
-    this.errorMessage = '';
+    this.error = '';
     if (!this.email.trim()) {
-      this.errorMessage = 'Enter email first.';
+      this.error = 'Enter email first.';
       return;
     }
-    if (this.busy || this.resendIn > 0) {
-      return;
-    }
-    this.busy = true;
-    this.auth.sendOtp(this.email.trim())
-      .pipe(finalize(() => this.busy = false))
-      .subscribe({
-        next: () => { this.otpSent = true; this.startCooldown(); },
+    this.otpSent = true;
+    this.info = 'Sending OTP to your email...';
+    this.auth.sendOtp(this.email.trim()).subscribe({
+      next: () => this.info = 'OTP sent. Enter it below.',
         error: (e) => {
           if (e.status === 429) {
-            this.otpSent = true;
-            this.errorMessage = 'OTP already sent. Please wait a minute before resending.';
-            this.startCooldown();
+            this.info = 'OTP already sent. Enter it below.';
+          } else if (e.status === 0) {
+            this.otpSent = false;
+            this.info = '';
+            this.error = 'Cannot reach server.';
           } else {
-            this.errorMessage = e.status === 0
-              ? 'Cannot reach server. Start the backend first.'
-              : 'Could not send OTP.';
+            this.info = '';
+            this.error = serverMessage(e, 'Could not send OTP.');
           }
         }
-      });
+    });
   }
 
   login(): void {
-    this.errorMessage = '';
+    this.error = '';
     if (!this.email.trim()) {
-      this.errorMessage = 'Enter email first.';
+      this.error = 'Enter email first.';
       return;
     }
-    if (this.mode === 'password' && !this.password) {
-      this.errorMessage = 'Enter password.';
-      return;
-    }
-    if (this.mode === 'otp' && !this.otp) {
-      this.errorMessage = 'Enter OTP.';
-      return;
-    }
-    this.busy = true;
-
-    const done = () => this.router.navigate(['/dashboard']);
-    const fail = (msg: string) => this.errorMessage = msg;
-    const badPassword = (e: any) => fail(e.status === 0
-      ? 'Cannot reach server. Start the backend first.'
-      : e.status === 404
-        ? 'Invalid input. No account found for this email.'
-        : 'Wrong password.');
-    const badOtp = (e: any) => fail(e.status === 0
-      ? 'Cannot reach server. Start the backend first.'
-      : e.status === 404
-        ? 'Invalid input. No account found for this email.'
-        : 'Invalid or expired OTP');
-
     if (this.mode === 'password') {
-      this.auth.login(this.email.trim(), this.password)
-        .pipe(finalize(() => this.busy = false))
-        .subscribe({
-          next: (r) => {
-            if (r?.role === 'ADMIN') {
-              this.auth.logout();
-              fail('Admins must use the Admin Login page.');
-              return;
-            }
-            done();
-          },
-          error: badPassword
-        });
+      if (!this.password) {
+        this.error = 'Enter password.';
+        return;
+      }
+      this.auth.login(this.email.trim(), this.password).subscribe({
+        next: (r) => {
+          if (r?.role === 'ADMIN') {
+            this.auth.logout();
+            this.error = 'Admins must use the Admin Login page.';
+            return;
+          }
+          this.router.navigate(['/dashboard']);
+        },
+        error: (e) => this.error = e.status === 0
+          ? 'Cannot reach server.'
+          : e.status === 404
+            ? 'Invalid input. No account found for this email.'
+            : 'Wrong password.'
+      });
     } else {
-      this.auth.loginWithOtp(this.email.trim(), this.otp)
-        .pipe(finalize(() => this.busy = false))
-        .subscribe({
-          next: (r) => {
-            if (r?.role === 'ADMIN') {
-              this.auth.logout();
-              fail('Admins must use the Admin Login page.');
-              return;
-            }
-            done();
-          },
-          error: badOtp
-        });
+      if (!this.otp) {
+        this.error = 'Enter OTP.';
+        return;
+      }
+      this.auth.loginWithOtp(this.email.trim(), this.otp).subscribe({
+        next: (r) => {
+          if (r?.role === 'ADMIN') {
+            this.auth.logout();
+            this.error = 'Admins must use the Admin Login page.';
+            return;
+          }
+          this.router.navigate(['/dashboard']);
+        },
+        error: (e) => this.error = e.status === 0
+          ? 'Cannot reach server.'
+          : e.status === 404
+            ? 'Invalid input. No account found for this email.'
+            : serverMessage(e, 'Invalid or expired OTP.')
+              + ' Use the newest mail, or tap Resend OTP.'
+      });
     }
   }
 }

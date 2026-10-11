@@ -3,7 +3,6 @@
         <h1>LearnMatrix</h1>
         <h2>Login</h2>
 
-        <!-- Choose login method -->
         <div class="roles">
             <button type="button" [class.active]="mode === 'password'" (click)="setMode('password')">Password</button>
             <button type="button" [class.active]="mode === 'otp'" (click)="setMode('otp')">OTP</button>
@@ -15,26 +14,22 @@
         @if (mode === 'password') {
         <label>Password</label>
         <input type="password" [(ngModel)]="password" placeholder="Enter password" />
-        <button (click)="login()" [disabled]="busy">{{ busy ? 'Please wait...' : 'Login' }}</button>
+        <button (click)="login()">Login</button>
         }
 
-        @if (mode === 'otp') {
-        @if (!otpSent) {
-        <button (click)="sendOtp()" [disabled]="busy">{{ busy ? 'Sending...' : 'Send OTP' }}</button>
-        } @else {
-        <label>OTP (sent to email)</label>
+        @if (mode === 'otp' && !otpSent) {
+        <button (click)="sendOtp()">Send OTP</button>
+        }
+
+        @if (mode === 'otp' && otpSent) {
+        <label>OTP (sent to {{ email }})</label>
         <input [(ngModel)]="otp" placeholder="Enter OTP" />
-        <button (click)="login()" [disabled]="busy">{{ busy ? 'Please wait...' : 'Verify & Login' }}</button>
-
-        @if (resendIn > 0) {
-        <p class="hint">Resend OTP in {{ resendIn }}s</p>
-        } @else {
-        <button class="link" (click)="sendOtp()" [disabled]="busy">Resend OTP</button>
-        }
-        }
+        <button (click)="login()">Verify & Login</button>
+        <button class="link" (click)="sendOtp()">Resend OTP</button>
         }
 
-        @if (errorMessage) { <p class="error">{{ errorMessage }}</p> }
+        @if (info) { <p class="success">{{ info }}</p> }
+        @if (error) { <p class="error">{{ error }}</p> }
 
         <p>Don't have an account? <a routerLink="/register">Register</a></p>
     </div>

@@ -3,30 +3,20 @@
         <h1>LearnMatrix</h1>
         <h2>Register</h2>
 
-        <h3>Step 1 — Verify your email</h3>
-
+        @if (stage === 'email') {
         <label>Email</label>
-        <input [(ngModel)]="email" placeholder="Enter email" [disabled]="emailVerified" />
-
-        @if (!otpSent) {
-        <button (click)="sendOtp()" [disabled]="busy">{{ busy ? 'Sending...' : 'Send OTP' }}</button>
+        <input [(ngModel)]="email" placeholder="Enter email" />
+        <button (click)="sendOtp()">Send OTP</button>
         }
 
-        @if (otpSent && !emailVerified) {
-        <label>OTP (sent to email)</label>
+        @if (stage === 'otp') {
+        <label>OTP (sent to {{ email }})</label>
         <input [(ngModel)]="otp" placeholder="Enter OTP" />
-        <button (click)="verifyOtp()" [disabled]="busy">{{ busy ? 'Please wait...' : 'Verify Email' }}</button>
-
-        @if (resendIn > 0) {
-        <p class="hint">Resend OTP in {{ resendIn }}s</p>
-        } @else {
-        <button class="link" (click)="sendOtp()" [disabled]="busy">Resend OTP</button>
-        }
+        <button (click)="verify()">Verify Email</button>
+        <button class="link" (click)="sendOtp()">Resend OTP</button>
         }
 
-        @if (emailVerified) {
-        <h3>Step 2 — Your details</h3>
-
+        @if (stage === 'details') {
         <label>Name</label>
         <input [(ngModel)]="name" placeholder="Enter name" />
 
@@ -38,12 +28,11 @@
             <button type="button" [class.active]="role === 'STUDENT'" (click)="role = 'STUDENT'">Student</button>
             <button type="button" [class.active]="role === 'FACULTY'" (click)="role = 'FACULTY'">Faculty</button>
         </div>
-
-        <button (click)="register()" [disabled]="busy">{{ busy ? 'Please wait...' : 'Register' }}</button>
+        <button (click)="register()">Register</button>
         }
 
-        @if (message) { <p class="success">{{ message }}</p> }
-        @if (errorMessage) { <p class="error">{{ errorMessage }}</p> }
+        @if (info) { <p class="success">{{ info }}</p> }
+        @if (error) { <p class="error">{{ error }}</p> }
 
         <p>Already have an account? <a routerLink="/login">Login</a></p>
     </div>

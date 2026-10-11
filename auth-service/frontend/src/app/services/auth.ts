@@ -23,6 +23,12 @@ export interface AppUser {
     role: string;
 }
 
+// Exact server reason if present, otherwise the fallback text.
+export function serverMessage(e: any, fallback: string): string {
+    const m = e?.error?.message;
+    return typeof m === 'string' && m.length > 0 ? m : fallback;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
 

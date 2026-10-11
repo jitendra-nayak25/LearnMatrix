@@ -20,6 +20,8 @@ export class LoginComponent {
   otp = '';
   otpSent = false;
   busy = false;
+  resendIn = 0;
+  private resendTimer: any;
 
   errorMessage = '';
 
@@ -32,20 +34,42 @@ export class LoginComponent {
     this.otp = '';
   }
 
+  private startCooldown(): void {
+    this.resendIn = 60;
+    clearInterval(this.resendTimer);
+    this.resendTimer = setInterval(() => {
+      this.resendIn--;
+      if (this.resendIn <= 0) {
+        clearInterval(this.resendTimer);
+      }
+    }, 1000);
+  }
+
   sendOtp(): void {
     this.errorMessage = '';
     if (!this.email.trim()) {
       this.errorMessage = 'Enter email first.';
       return;
     }
+    if (this.busy || this.resendIn > 0) {
+      return;
+    }
     this.busy = true;
     this.auth.sendOtp(this.email.trim())
       .pipe(finalize(() => this.busy = false))
       .subscribe({
-        next: () => this.otpSent = true,
-        error: (e) => this.errorMessage = e.status === 0
-          ? 'Cannot reach server. Start the backend first.'
-          : 'Could not send OTP.'
+        next: () => { this.otpSent = true; this.startCooldown(); },
+        error: (e) => {
+          if (e.status === 429) {
+            this.otpSent = true;
+            this.errorMessage = 'OTP already sent. Please wait a minute before resending.';
+            this.startCooldown();
+          } else {
+            this.errorMessage = e.status === 0
+              ? 'Cannot reach server. Start the backend first.'
+              : 'Could not send OTP.';
+          }
+        }
       });
   }
 

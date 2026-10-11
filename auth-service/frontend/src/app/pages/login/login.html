@@ -25,6 +25,12 @@
         <label>OTP (sent to email)</label>
         <input [(ngModel)]="otp" placeholder="Enter OTP" />
         <button (click)="login()" [disabled]="busy">{{ busy ? 'Please wait...' : 'Verify & Login' }}</button>
+
+        @if (resendIn > 0) {
+        <p class="hint">Resend OTP in {{ resendIn }}s</p>
+        } @else {
+        <button class="link" (click)="sendOtp()" [disabled]="busy">Resend OTP</button>
+        }
         }
         }
 

@@ -1,8 +1,8 @@
 package com.oblms.authservice.service;
 
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Map;
 import java.util.Random;
@@ -12,36 +12,45 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class OtpService {
 
-    private final JavaMailSender mailSender;
+    private final OtpMailService otpMailService;
 
     // email -> code
     private final Map<String, String> otpStore = new ConcurrentHashMap<>();
     // email -> expiry time
     private final Map<String, Long> expiryStore = new ConcurrentHashMap<>();
+    // email -> last send time (resend cooldown)
+    private final Map<String, Long> lastSentStore = new ConcurrentHashMap<>();
 
     private static final long VALIDITY = 5 * 60 * 1000; // 5 minutes
+    private static final long RESEND_INTERVAL = 60 * 1000; // 1 minute
 
-    public OtpService(JavaMailSender mailSender) {
-        this.mailSender = mailSender;
+    public OtpService(OtpMailService otpMailService) {
+        this.otpMailService = otpMailService;
     }
 
     public void sendOtp(String email) {
+        long now = System.currentTimeMillis();
+
+        // Block rapid re-clicks: a fresh OTP was already sent, reuse it.
+        Long last = lastSentStore.get(email);
+        String existing = otpStore.get(email);
+        Long expiry = expiryStore.get(email);
+        if (last != null && now - last < RESEND_INTERVAL
+                && existing != null && expiry != null && now < expiry) {
+            throw new ResponseStatusException(
+                    HttpStatus.TOO_MANY_REQUESTS,
+                    "OTP already sent. Please wait a minute before resending.");
+        }
+
         String otp = String.format("%06d", new Random().nextInt(999999));
         otpStore.put(email, otp);
-        expiryStore.put(email, System.currentTimeMillis() + VALIDITY);
+        expiryStore.put(email, now + VALIDITY);
+        lastSentStore.put(email, now);
 
         System.out.println("OTP for " + email + " : " + otp);
 
-        try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(email);
-            message.setSubject("LearnMatrix OTP Verification");
-            message.setText("Your LearnMatrix OTP is: " + otp + "\nValid for 5 minutes.");
-            mailSender.send(message);
-        } catch (Exception e) {
-            // Mail not configured or failed: OTP is still in console log above.
-            System.out.println("Email send failed (check Gmail config): " + e.getMessage());
-        }
+        // Sent in background: HTTP returns instantly, OTP already stored.
+        otpMailService.sendOtpMail(email, otp);
     }
 
     public boolean verifyOtp(String email, String otp) {

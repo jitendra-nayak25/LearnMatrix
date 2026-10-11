@@ -3,22 +3,30 @@
         <h1>LearnMatrix</h1>
         <h2>Register</h2>
 
-        <!-- Step 1: email + OTP -->
+        <h3>Step 1 — Verify your email</h3>
+
         <label>Email</label>
         <input [(ngModel)]="email" placeholder="Enter email" [disabled]="emailVerified" />
 
         @if (!otpSent) {
-        <button (click)="sendOtp()">Send OTP</button>
+        <button (click)="sendOtp()" [disabled]="busy">{{ busy ? 'Sending...' : 'Send OTP' }}</button>
         }
 
         @if (otpSent && !emailVerified) {
         <label>OTP (sent to email)</label>
         <input [(ngModel)]="otp" placeholder="Enter OTP" />
-        <button (click)="verifyOtp()">Verify Email</button>
+        <button (click)="verifyOtp()" [disabled]="busy">{{ busy ? 'Please wait...' : 'Verify Email' }}</button>
+
+        @if (resendIn > 0) {
+        <p class="hint">Resend OTP in {{ resendIn }}s</p>
+        } @else {
+        <button class="link" (click)="sendOtp()" [disabled]="busy">Resend OTP</button>
+        }
         }
 
-        <!-- Step 2: after mail verification, enter name, password, role -->
         @if (emailVerified) {
+        <h3>Step 2 — Your details</h3>
+
         <label>Name</label>
         <input [(ngModel)]="name" placeholder="Enter name" />
 
@@ -31,7 +39,7 @@
             <button type="button" [class.active]="role === 'FACULTY'" (click)="role = 'FACULTY'">Faculty</button>
         </div>
 
-        <button (click)="register()">Register</button>
+        <button (click)="register()" [disabled]="busy">{{ busy ? 'Please wait...' : 'Register' }}</button>
         }
 
         @if (message) { <p class="success">{{ message }}</p> }

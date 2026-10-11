@@ -66,6 +66,18 @@ button {
     text-align: center;
 }
 
+.hint {
+    color: #666;
+    font-size: 14px;
+}
+
+.link {
+    background: none;
+    color: #1976d2;
+    margin-top: 10px;
+    padding: 6px;
+}
+
 .error {
     color: red;
     text-align: center;

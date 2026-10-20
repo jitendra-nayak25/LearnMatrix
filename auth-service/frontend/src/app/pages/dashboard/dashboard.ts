@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService, AppUser } from '../../services/auth';
@@ -18,7 +18,11 @@ export class DashboardComponent implements OnInit {
   filter = 'ALL';
   counts = { ALL: 0, STUDENT: 0, FACULTY: 0 };
 
-  constructor(private auth: AuthService, private router: Router) {
+  constructor(
+    private auth: AuthService,
+    private router: Router,
+    private cdr: ChangeDetectorRef
+  ) {
     this.email = this.auth.getEmail();
     this.role = this.auth.getRole();
   }
@@ -38,10 +42,12 @@ export class DashboardComponent implements OnInit {
           STUDENT: u.filter(x => x.role === 'STUDENT').length,
           FACULTY: u.filter(x => x.role === 'FACULTY').length
         };
+        this.cdr.markForCheck();
       },
       error: () => {
         this.users = [];
         this.counts = { ALL: 0, STUDENT: 0, FACULTY: 0 };
+        this.cdr.markForCheck();
       }
     });
   }

@@ -1,5 +1,6 @@
 import {
-  ApplicationConfig
+  ApplicationConfig,
+  provideZonelessChangeDetection
 } from '@angular/core';
 
 import {
@@ -17,6 +18,8 @@ import {
 export const appConfig: ApplicationConfig = {
 
   providers: [
+
+    provideZonelessChangeDetection(),
 
     provideRouter(routes),
 

@@ -9,7 +9,7 @@
         <label>Password</label>
         <input type="password" [(ngModel)]="password" placeholder="Enter password" />
 
-        <button (click)="login()">Login as Admin</button>
+        <button (click)="login()" [disabled]="loading">{{ loading ? 'Logging in...' : 'Login as Admin' }}</button>
 
         @if (errorMessage) { <p class="error">{{ errorMessage }}</p> }
 

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService, serverMessage } from '../../services/auth';
@@ -21,8 +21,14 @@ export class LoginComponent {
 
   info = '';
   error = '';
+  loading = false;
+  sendingOtp = false;
 
-  constructor(private auth: AuthService, private router: Router) { }
+  constructor(
+    private auth: AuthService,
+    private router: Router,
+    private cdr: ChangeDetectorRef
+  ) { }
 
   setMode(m: 'password' | 'otp'): void {
     this.mode = m;
@@ -39,21 +45,28 @@ export class LoginComponent {
       return;
     }
     this.otpSent = true;
+    this.sendingOtp = true;
     this.info = 'Sending OTP to your email...';
     this.auth.sendOtp(this.email.trim()).subscribe({
-      next: () => this.info = 'OTP sent. Enter it below.',
-        error: (e) => {
-          if (e.status === 429) {
-            this.info = 'OTP already sent. Enter it below.';
-          } else if (e.status === 0) {
-            this.otpSent = false;
-            this.info = '';
-            this.error = 'Cannot reach server.';
-          } else {
-            this.info = '';
-            this.error = serverMessage(e, 'Could not send OTP.');
-          }
+      next: () => {
+        this.sendingOtp = false;
+        this.info = 'OTP sent. Enter it below.';
+        this.cdr.markForCheck();
+      },
+      error: (e) => {
+        this.sendingOtp = false;
+        if (e.status === 429) {
+          this.info = 'OTP already sent. Enter it below.';
+        } else if (e.status === 0) {
+          this.otpSent = false;
+          this.info = '';
+          this.error = 'Cannot reach server.';
+        } else {
+          this.info = '';
+          this.error = serverMessage(e, 'Could not send OTP.');
         }
+        this.cdr.markForCheck();
+      }
     });
   }
 
@@ -68,41 +81,55 @@ export class LoginComponent {
         this.error = 'Enter password.';
         return;
       }
+      this.loading = true;
       this.auth.login(this.email.trim(), this.password).subscribe({
         next: (r) => {
+          this.loading = false;
           if (r?.role === 'ADMIN') {
             this.auth.logout();
             this.error = 'Admins must use the Admin Login page.';
+            this.cdr.markForCheck();
             return;
           }
           this.router.navigate(['/dashboard']);
         },
-        error: (e) => this.error = e.status === 0
-          ? 'Cannot reach server.'
-          : e.status === 404
-            ? 'Invalid input. No account found for this email.'
-            : 'Wrong password.'
+        error: (e) => {
+          this.loading = false;
+          this.error = e.status === 0
+            ? 'Cannot reach server.'
+            : e.status === 404
+              ? 'Invalid input. No account found for this email.'
+              : 'Wrong password.';
+          this.cdr.markForCheck();
+        }
       });
     } else {
       if (!this.otp) {
         this.error = 'Enter OTP.';
         return;
       }
+      this.loading = true;
       this.auth.loginWithOtp(this.email.trim(), this.otp).subscribe({
         next: (r) => {
+          this.loading = false;
           if (r?.role === 'ADMIN') {
             this.auth.logout();
             this.error = 'Admins must use the Admin Login page.';
+            this.cdr.markForCheck();
             return;
           }
           this.router.navigate(['/dashboard']);
         },
-        error: (e) => this.error = e.status === 0
-          ? 'Cannot reach server.'
-          : e.status === 404
-            ? 'Invalid input. No account found for this email.'
-            : serverMessage(e, 'Invalid or expired OTP.')
-              + ' Use the newest mail, or tap Resend OTP.'
+        error: (e) => {
+          this.loading = false;
+          this.error = e.status === 0
+            ? 'Cannot reach server.'
+            : e.status === 404
+              ? 'Invalid input. No account found for this email.'
+              : serverMessage(e, 'Invalid or expired OTP.')
+                + ' Use the newest mail, or tap Resend OTP.';
+          this.cdr.markForCheck();
+        }
       });
     }
   }

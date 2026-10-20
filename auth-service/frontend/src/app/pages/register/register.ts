@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService, serverMessage } from '../../services/auth';
@@ -25,7 +25,11 @@ export class RegisterComponent {
   info = '';
   error = '';
 
-  constructor(private auth: AuthService, private router: Router) { }
+  constructor(
+    private auth: AuthService,
+    private router: Router,
+    private cdr: ChangeDetectorRef
+  ) { }
 
   sendOtp(): void {
     this.error = '';
@@ -38,6 +42,7 @@ export class RegisterComponent {
     this.auth.sendOtp(this.email.trim()).subscribe({
       next: () => {
         this.info = 'OTP sent. Enter it below.';
+        this.cdr.markForCheck();
       },
       error: (e) => {
         if (e.status === 429) {
@@ -50,6 +55,7 @@ export class RegisterComponent {
           this.info = '';
           this.error = serverMessage(e, 'Could not send OTP.');
         }
+        this.cdr.markForCheck();
       }
     });
   }
@@ -64,6 +70,7 @@ export class RegisterComponent {
       next: () => {
         this.stage = 'details';
         this.info = 'Email verified. Complete your details.';
+        this.cdr.markForCheck();
       },
       error: (e) => {
         if (e.status === 0) {
@@ -72,6 +79,7 @@ export class RegisterComponent {
           this.error = serverMessage(e, 'Invalid or expired OTP.')
             + ' Use the newest mail, or tap Resend OTP.';
         }
+        this.cdr.markForCheck();
       }
     });
   }
@@ -98,6 +106,7 @@ export class RegisterComponent {
         } else {
           this.error = serverMessage(e, 'Registration failed.');
         }
+        this.cdr.markForCheck();
       }
     });
   }

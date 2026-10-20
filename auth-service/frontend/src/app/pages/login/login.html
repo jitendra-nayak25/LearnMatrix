@@ -14,18 +14,18 @@
         @if (mode === 'password') {
         <label>Password</label>
         <input type="password" [(ngModel)]="password" placeholder="Enter password" />
-        <button (click)="login()">Login</button>
+        <button (click)="login()" [disabled]="loading">{{ loading ? 'Logging in...' : 'Login' }}</button>
         }
 
         @if (mode === 'otp' && !otpSent) {
-        <button (click)="sendOtp()">Send OTP</button>
+        <button (click)="sendOtp()" [disabled]="sendingOtp">{{ sendingOtp ? 'Sending...' : 'Send OTP' }}</button>
         }
 
         @if (mode === 'otp' && otpSent) {
         <label>OTP (sent to {{ email }})</label>
         <input [(ngModel)]="otp" placeholder="Enter OTP" />
-        <button (click)="login()">Verify & Login</button>
-        <button class="link" (click)="sendOtp()">Resend OTP</button>
+        <button (click)="login()" [disabled]="loading">{{ loading ? 'Verifying...' : 'Verify & Login' }}</button>
+        <button class="link" (click)="sendOtp()" [disabled]="sendingOtp">Resend OTP</button>
         }
 
         @if (info) { <p class="success">{{ info }}</p> }

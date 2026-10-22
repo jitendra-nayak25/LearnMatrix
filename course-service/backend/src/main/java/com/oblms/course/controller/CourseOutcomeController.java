@@ -3,8 +3,10 @@ package com.oblms.course.controller;
 
 import com.oblms.course.entity.CourseOutcome;
 import com.oblms.course.service.CourseOutcomeService;
-import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -21,7 +23,7 @@ public class CourseOutcomeController {
 
     @PostMapping
     public CourseOutcome createCourseOutcome(
-           @Valid @RequestBody CourseOutcome courseOutcome) {
+            @Valid @RequestBody CourseOutcome courseOutcome) {
         return courseOutcomeService.createCourseOutcome(courseOutcome);
     }
 
@@ -35,7 +37,10 @@ public class CourseOutcomeController {
             @PathVariable Long id) {
         return courseOutcomeService.getCourseOutcomeById(id)
                 .orElseThrow(() ->
-                        new RuntimeException("Course Outcome not found"));
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Course Outcome not found with ID: " + id
+                        ));
     }
 
     @GetMapping("/course/{courseId}")

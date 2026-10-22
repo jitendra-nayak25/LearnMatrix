@@ -56,3 +56,58 @@ GET /courses/faculty/1
 
 ### Get outcomes for course 1
 GET /course-outcomes/course/1
+
+## 6. Integration Contract
+
+### Course-Service
+
+- Base URL: http://localhost:8082
+- Course resource: /courses
+- Course Outcome resource: /course-outcomes
+
+### Course Data Contract
+
+| Field | Type | Verified Example |
+|---|---|---|
+| id | Number | 1 |
+| coursecode | String | CUTM101 |
+| coursename | String | Advanced Java |
+| credits | Number | 4 |
+| facultyId | Number | 2 |
+
+### Course Outcome Data Contract
+
+| Field | Type | Verified Example |
+|---|---|---|
+| id | Number | 4 |
+| courseId | Number | 1 |
+| outcomeCode | String | CO402 |
+| description | String | Apply software engineering principles |
+
+### Integration Notes
+
+- Assessment-Service can use the Course ID as the course reference when associating an assessment with a course.
+- Attainment-Service may use Course Outcome records for outcome-level calculations.
+- The courseId field identifies the associated Course in a Course Outcome record.
+- Course IDs and Course Outcome IDs must be obtained from Course-Service responses.
+- Other services should handle unsuccessful HTTP responses and missing records.
+- Course-Service rejects Course Outcome creation when the referenced course does not exist, returning HTTP 400.
+- Direct inter-service validation, authentication, JWT, and API Gateway routing remain pending until implemented and tested.
+
+### Verification Results
+
+Verification date: 2026-10-22
+
+| Endpoint or Test | Result |
+|---|---|
+| GET /courses | Passed — four courses returned |
+| GET /courses/1 | Passed — Course ID 1 returned |
+| GET /course-outcomes | Passed — outcome records returned |
+| GET /course-outcomes/course/1 | Passed — outcome linked to Course ID 1 returned |
+| GET /courses/99999 | Passed — HTTP 404 for missing course |
+| Create outcome with nonexistent courseId | Passed — HTTP 400 |
+| GET /courses/page?page=0&size=500 | Passed — HTTP 400 for invalid page size |
+
+Verified database counts: 4 courses and 1 Course Outcome.
+
+Note: These results document observed behavior. Confirm individual status codes in Postman if a formal status-code audit is required.

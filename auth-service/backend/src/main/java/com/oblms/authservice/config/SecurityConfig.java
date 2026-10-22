@@ -55,12 +55,17 @@ public class SecurityConfig {
                                 "/auth/otp/**",
                                 "/auth/register",
                                 "/auth/login",
-                                "/auth/login-otp"
+                                "/auth/login-otp",
+                                "/auth/refresh"
                         ).permitAll()
 
                         // ADMIN only: manage users
                         .requestMatchers("/auth/users/**")
                         .hasRole("ADMIN")
+
+                        // FACULTY only: faculty area
+                        .requestMatchers("/faculty/**")
+                        .hasRole("FACULTY")
 
                         // Everything else requires login
                         .anyRequest().authenticated()

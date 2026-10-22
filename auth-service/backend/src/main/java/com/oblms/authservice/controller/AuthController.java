@@ -1,9 +1,11 @@
 package com.oblms.authservice.controller;
 
 import com.oblms.authservice.config.JwtService;
+import com.oblms.authservice.entity.RefreshToken;
 import com.oblms.authservice.entity.User;
 import com.oblms.authservice.repository.UserRepository;
 import com.oblms.authservice.service.OtpService;
+import com.oblms.authservice.service.RefreshTokenService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -19,15 +21,18 @@ public class AuthController {
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final OtpService otpService;
+    private final RefreshTokenService refreshTokenService;
 
     public AuthController(
             UserRepository userRepository,
             org.springframework.security.crypto.password.PasswordEncoder passwordEncoder,
             JwtService jwtService,
+            RefreshTokenService refreshTokenService,
             OtpService otpService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.refreshTokenService = refreshTokenService;
         this.otpService = otpService;
     }
 
@@ -82,7 +87,8 @@ public class AuthController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Wrong password");
         }
         String token = jwtService.generateToken(user.getEmail(), user.getRole());
-        return new LoginResponse(token, user.getEmail(), user.getRole());
+        String refreshToken = refreshTokenService.issue(user.getEmail());
+        return new LoginResponse(token, refreshToken, user.getEmail(), user.getRole());
     }
 
     // Login with email + OTP (alternative to password).
@@ -94,7 +100,22 @@ public class AuthController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or expired OTP");
         }
         String token = jwtService.generateToken(user.getEmail(), user.getRole());
-        return new LoginResponse(token, user.getEmail(), user.getRole());
+        String refreshToken = refreshTokenService.issue(user.getEmail());
+        return new LoginResponse(token, refreshToken, user.getEmail(), user.getRole());
+    }
+
+    // Exchange a valid refresh token for a fresh access token + refresh token.
+    @PostMapping("/refresh")
+    public LoginResponse refresh(@RequestBody RefreshRequest request) {
+        if (request.getRefreshToken() == null || request.getRefreshToken().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Refresh token is required");
+        }
+        RefreshToken rotated = refreshTokenService.rotate(request.getRefreshToken());
+        User user = userRepository.findByEmail(rotated.getEmail())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED, "User no longer exists"));
+        String token = jwtService.generateToken(user.getEmail(), user.getRole());
+        return new LoginResponse(token, rotated.getToken(), user.getEmail(), user.getRole());
     }
 
     // Admin: list all Students and Faculty (no passwords sent).
@@ -113,6 +134,7 @@ public class AuthController {
         if ("ADMIN".equals(user.getRole())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot delete admin");
         }
+        refreshTokenService.revoke(user.getEmail());
         userRepository.delete(user);
         return "User deleted";
     }

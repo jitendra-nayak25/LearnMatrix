@@ -1,8 +1,8 @@
 package com.oblms.authservice.config;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,21 +13,27 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.crypto.SecretKey;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.Set;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final String SECRET_KEY =
-            "my-super-secret-key-for-oblms-jwt-authentication-2026";
+    private static final Set<String> PUBLIC_PATHS = Set.of(
+            "/error",
+            "/auth/login",
+            "/auth/login-otp",
+            "/auth/register",
+            "/auth/refresh",
+            "/auth/otp/send",
+            "/auth/otp/verify"
+    );
 
-    private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(
-                SECRET_KEY.getBytes(StandardCharsets.UTF_8)
-        );
+    private final JwtService jwtService;
+
+    public JwtAuthenticationFilter(JwtService jwtService) {
+        this.jwtService = jwtService;
     }
 
     @Override
@@ -36,6 +42,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain)
             throws ServletException, IOException {
+
+        if (PUBLIC_PATHS.contains(request.getRequestURI())
+                || "OPTIONS".equalsIgnoreCase(request.getMethod())) {
+
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         String authorizationHeader =
                 request.getHeader("Authorization");
@@ -51,11 +64,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
 
-            Claims claims = Jwts.parser()
-                    .verifyWith(getSigningKey())
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload();
+            Claims claims = jwtService.parseToken(token);
 
             String email = claims.getSubject();
             String role = claims.get("role", String.class);
@@ -74,10 +83,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     .getContext()
                     .setAuthentication(authentication);
 
-        } catch (Exception e) {
-            System.out.println("Invalid JWT token");
+        } catch (ExpiredJwtException e) {
+            unauthorized(response, "Token expired, please login again");
+            return;
+        } catch (JwtException | IllegalArgumentException e) {
+            unauthorized(response, "Invalid token");
+            return;
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private void unauthorized(HttpServletResponse response, String message)
+            throws IOException {
+
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json");
+        response.getWriter().write(
+                "{\"status\":401,\"error\":\"Unauthorized\",\"message\":"
+                        + "\"" + message + "\"}");
     }
 }

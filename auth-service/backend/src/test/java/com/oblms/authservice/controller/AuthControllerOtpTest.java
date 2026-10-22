@@ -4,6 +4,7 @@ import com.oblms.authservice.config.JwtService;
 import com.oblms.authservice.entity.User;
 import com.oblms.authservice.repository.UserRepository;
 import com.oblms.authservice.service.OtpService;
+import com.oblms.authservice.service.RefreshTokenService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,11 +33,14 @@ class AuthControllerOtpTest {
     @Mock
     private OtpService otpService;
 
+    @Mock
+    private RefreshTokenService refreshTokenService;
+
     private AuthController authController;
 
     @BeforeEach
     void setUp() {
-        authController = new AuthController(userRepository, passwordEncoder, jwtService, otpService);
+        authController = new AuthController(userRepository, passwordEncoder, jwtService, refreshTokenService, otpService);
     }
 
     @Test
@@ -78,6 +82,7 @@ class AuthControllerOtpTest {
         when(userRepository.findByEmail("student@learnmatrix.com")).thenReturn(Optional.of(user));
         when(otpService.verifyOtp("student@learnmatrix.com", "123456")).thenReturn(true);
         when(jwtService.generateToken("student@learnmatrix.com", "STUDENT")).thenReturn("jwt-token-xyz");
+        when(refreshTokenService.issue("student@learnmatrix.com")).thenReturn("refresh-token-xyz");
 
         OtpLoginRequest req = new OtpLoginRequest();
         req.setEmail("student@learnmatrix.com");
@@ -86,6 +91,7 @@ class AuthControllerOtpTest {
         LoginResponse res = authController.loginWithOtp(req);
         assertNotNull(res);
         assertEquals("jwt-token-xyz", res.getToken());
+        assertEquals("refresh-token-xyz", res.getRefreshToken());
         assertEquals("student@learnmatrix.com", res.getEmail());
         assertEquals("STUDENT", res.getRole());
     }

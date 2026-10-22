@@ -1,7 +1,9 @@
 package com.oblms.authservice.config;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -11,17 +13,14 @@ import java.util.Date;
 @Service
 public class JwtService {
 
-    private final String SECRET_KEY =
-            "my-super-secret-key-for-oblms-jwt-authentication-2026";
+    @Value("${app.jwt.secret}")
+    private String jwtSecret;
 
-    private final long EXPIRATION_TIME =
-            1000 * 60 * 60; // 1 hour
+    @Value("${app.jwt.expiration-ms:3600000}")
+    private long expirationMs;
 
     private SecretKey getSigningKey() {
-
-        return Keys.hmacShaKeyFor(
-                SECRET_KEY.getBytes(StandardCharsets.UTF_8)
-        );
+        return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
 
     public String generateToken(String email, String role) {
@@ -33,10 +32,19 @@ public class JwtService {
                 .expiration(
                         new Date(
                                 System.currentTimeMillis()
-                                        + EXPIRATION_TIME
+                                        + expirationMs
                         )
                 )
                 .signWith(getSigningKey())
                 .compact();
+    }
+
+    public Claims parseToken(String token) {
+
+        return Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 }

@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.mail.javamail.JavaMailSender;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -13,13 +12,13 @@ import static org.junit.jupiter.api.Assertions.*;
 class OtpServiceTest {
 
     @Mock
-    private JavaMailSender mailSender;
+    private OtpMailService otpMailService;
 
     private OtpService otpService;
 
     @BeforeEach
     void setUp() {
-        otpService = new OtpService(mailSender);
+        otpService = new OtpService(otpMailService);
     }
 
     @Test

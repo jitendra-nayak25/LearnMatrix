@@ -10,7 +10,8 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/faculty")
-public class FacultyController {
+public class
+FacultyController {
 
     @GetMapping("/me")
     public Map<String, String> me(Authentication auth) {

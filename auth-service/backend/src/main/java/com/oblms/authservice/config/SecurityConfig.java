@@ -67,6 +67,10 @@ public class SecurityConfig {
                         .requestMatchers("/faculty/**")
                         .hasRole("FACULTY")
 
+                        // STUDENT only: student area
+                        .requestMatchers("/student/**")
+                        .hasRole("STUDENT")
+
                         // Everything else requires login
                         .anyRequest().authenticated()
                 )
